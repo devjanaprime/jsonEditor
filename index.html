@@ -1,0 +1,80 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JSON Editor & Viewer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    <header class="app-header">
+      <div class="brand">
+        <h1>JSON Editor</h1>
+        <span class="badge">In-Memory</span>
+      </div>
+      <div class="file-actions">
+        <label for="file-input" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Open JSON File
+        </label>
+        <input type="file" id="file-input" accept=".json,application/json">
+        <span id="file-info" class="file-info">No file loaded (Using Sample Data)</span>
+      </div>
+    </header>
+
+    <div class="drop-zone" id="drop-zone">
+      <div class="drop-zone-content">
+        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        <p>Drag and drop a <code>.json</code> file here to edit</p>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="node-count">0 items loaded</span>
+      </div>
+      <div class="export-actions">
+        <button id="btn-copy" class="btn btn-secondary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy to Clipboard
+        </button>
+        <button id="btn-download" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Download JSON
+        </button>
+      </div>
+    </div>
+
+    <div id="error-banner" class="error-banner"></div>
+
+    <main class="workspace">
+      <section class="panel editor-panel">
+        <div class="panel-header">
+          <h2>Interactive Editor</h2>
+          <span class="hint">Click <b>Edit</b> to change values</span>
+        </div>
+        <div class="panel-body">
+          <div id="tree-root" class="tree-view"></div>
+        </div>
+      </section>
+
+      <section class="panel preview-panel">
+        <div class="panel-header">
+          <h2>Live Preview</h2>
+          <span class="hint">Formatted JSON Output</span>
+        </div>
+        <div class="panel-body">
+          <pre id="json-preview"><code></code></pre>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast">Action completed successfully</div>
+
+  <script src="app.js"></script>
+</body>
+</html>
