@@ -1,5 +1,4 @@
-/* script.js */
-// Default sample dataset
+// Default sample dataset (includes an empty array to test adding the first item)
 const defaultData = {
   project: "JSON Editor Web Stack",
   version: 1.0,
@@ -10,6 +9,7 @@ const defaultData = {
     maxHistory: 50
   },
   tags: ["javascript", "web-dev", "json", "tooling"],
+  notesList: [],
   metadata: {
     author: "Developer",
     license: "MIT",
@@ -31,7 +31,6 @@ const btnCopy = document.getElementById('btn-copy');
 const btnDownload = document.getElementById('btn-download');
 const toast = document.getElementById('toast');
 
-// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   render();
   setupEventListeners();
@@ -40,7 +39,6 @@ document.addEventListener('DOMContentLoaded', () => {
 function setupEventListeners() {
   fileInput.addEventListener('change', handleFileSelect);
 
-  // Drag and drop handlers
   ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
     dropZone.addEventListener(eventName, preventDefaults, false);
   });
@@ -97,10 +95,18 @@ function processFile(file) {
   reader.readAsText(file);
 }
 
+function getNestedValue(obj, path) {
+  let curr = obj;
+  for (let i = 0; i < path.length; i++) {
+    curr = curr[path[i]];
+  }
+  return curr;
+}
+
 function render() {
   treeRoot.innerHTML = '';
   let count = 0;
-  
+
   function buildTree(obj, container, path = []) {
     for (const key in obj) {
       count++;
@@ -109,13 +115,81 @@ function render() {
       const isObject = typeof val === 'object' && val !== null;
 
       if (isObject) {
+        const isArray = Array.isArray(val);
         const branchHeader = document.createElement('div');
         branchHeader.className = 'tree-branch-header';
-        branchHeader.innerHTML = `<span>${Array.isArray(val) ? '[]' : '{}'}</span> <span>${key}</span>`;
-        container.appendChild(branchHeader);
+
+        const symbolSpan = document.createElement('span');
+        symbolSpan.textContent = isArray ? '[]' : '{}';
+
+        const keyTitleSpan = document.createElement('span');
+        keyTitleSpan.textContent = key;
+
+        branchHeader.appendChild(symbolSpan);
+        branchHeader.appendChild(keyTitleSpan);
 
         const subContainer = document.createElement('div');
         subContainer.className = 'tree-node';
+
+        if (isArray) {
+          const addBtn = document.createElement('button');
+          addBtn.type = 'button';
+          addBtn.className = 'btn btn-secondary btn-small add-item-btn';
+          addBtn.textContent = '+ Add';
+
+          addBtn.onclick = () => {
+            if (subContainer.querySelector('.array-add-row')) return;
+
+            const addRow = document.createElement('div');
+            addRow.className = 'array-add-row';
+
+            const inputEl = document.createElement('input');
+            inputEl.type = 'text';
+            inputEl.className = 'array-add-input';
+            inputEl.placeholder = 'Enter text item...';
+
+            const confirmBtn = document.createElement('button');
+            confirmBtn.type = 'button';
+            confirmBtn.className = 'btn btn-primary btn-small';
+            confirmBtn.textContent = 'Add';
+
+            const cancelBtn = document.createElement('button');
+            cancelBtn.type = 'button';
+            cancelBtn.className = 'btn btn-secondary btn-small';
+            cancelBtn.textContent = 'Cancel';
+
+            const commitItem = () => {
+              const targetArray = getNestedValue(currentData, currentPath);
+              if (Array.isArray(targetArray)) {
+                targetArray.push(String(inputEl.value));
+                render();
+                showToast(`Added item to ${key}`);
+              }
+            };
+
+            confirmBtn.onclick = commitItem;
+            inputEl.addEventListener('keydown', (e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                commitItem();
+              } else if (e.key === 'Escape') {
+                addRow.remove();
+              }
+            });
+
+            cancelBtn.onclick = () => addRow.remove();
+
+            addRow.appendChild(inputEl);
+            addRow.appendChild(confirmBtn);
+            addRow.appendChild(cancelBtn);
+            subContainer.prepend(addRow);
+            inputEl.focus();
+          };
+
+          branchHeader.appendChild(addBtn);
+        }
+
+        container.appendChild(branchHeader);
         container.appendChild(subContainer);
 
         buildTree(val, subContainer, currentPath);
@@ -148,7 +222,6 @@ function render() {
 
         editBtn.onclick = () => {
           if (editBtn.textContent === 'Edit') {
-            // Switch to Edit Mode
             editBtn.textContent = 'Save';
             editBtn.className = 'btn btn-primary btn-small';
 
@@ -167,20 +240,16 @@ function render() {
             valSpan.replaceWith(inputEl);
             inputEl.focus();
 
-            // Cancel button
             const cancelBtn = document.createElement('button');
             cancelBtn.className = 'btn btn-secondary btn-small';
             cancelBtn.textContent = 'Cancel';
             cancelBtn.onclick = () => render();
             actionCell.appendChild(cancelBtn);
-
           } else {
-            // Save Edit
             const inputEl = actionCell.parentElement.querySelector('.edit-input, .edit-select');
             let rawValue = inputEl.value;
             let typedValue;
 
-            // Type preservation logic
             const originalType = typeof val;
             if (val === null) {
               typedValue = rawValue === '' ? null : rawValue;
